@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>REWP Logbook</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json"    type="B">
+<script>
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+
+</head>
+<body>
+
+<div class="container">
+    <header><h1>REWP <span class="accent">Logbook</span></h1></header>
+
+    <section class="card">
+        <label>Trip Settings (Tweespruit → Bloem)</label>
+        <div class="stack-mobile">
+            <input type="number" id="distance" value="200" placeholder="km">
+            <input type="number" id="consuption" value="8.0" placeholder="L/100km">
+            <input type="number" id="fuelPrice" value="20.12" placeholder="R/L">
+        </div>
+    </section>
+
+    <section class="card">
+        <label>Inventory Log</label>
+        <select id="matType">
+            <option value="150">Cellphone Boards (R150)</option>
+            <option value="120">RAM Sticks (R120)</option>
+            <option value="95">Bronze (R95)</option>
+            <option value="18">Stainless Steel (R18)</option>
+            <option value="4.50">Subgrade Sheets (R4.50)</option>
+            <option value="135">Copper Mix (R135.00)</option>
+            <optgroup label="Heavy Metals & Batteries">
+    <option value="12">Lead (R12/kg)</option>
+    <option value="10.50">Car Batteries (R10.50/kg)</option>
+    <option value="85">Brass (R85/kg)</option>
+</optgroup>
+
+        </select>
+        <div class="input-row">
+            <input type="number" id="weight" placeholder="kg">
+            <button onclick="addItem()" class="btn-main">Add (Enter)</button>
+        </div>
+    </section>
+
+    <section class="card summary">
+        <div class="stat-row"><span>Gross Revenue</span> <span id="gross">R0.00</span></div>
+        <div class="stat-row" style="color:var(--danger)"><span>Fuel Cost</span> <span id="travel">R0.00</span></div>
+        <div class="net-profit">NET: <span id="netProfit">R0.00</span></div>
+        <button onclick="exportToCSV()" class="btn-alt" style="margin-top:15px; width:100%;">Export CSV</button>
+    </section>
+</div>
+
+<div id="walletPopup" class="wallet-overlay">
+    <div class="wallet-content">
+        <div class="market-header">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <small>REWP WALLET</small>
+                <span id="totalWeight" class="weight-badge">0 kg Total Load</span>
+            </div>
+            <div id="marketWatch"></div>
+        </div>
+
+        <h3>Trip Progress</h3>
+        <div class="goal-container">
+            <div id="goalText" style="font-size:0.8rem; margin-bottom:5px;">0% Covered</div>
+            <div class="goal-bg"><div id="goalFill" class="goal-fill"></div></div>
+        </div>
+
+        <!-- History stays in the middle -->
+        <div id="historyList" class="history-scroll"></div>
+
+        <!-- Buttons stay at the very bottom -->
+        <div class="wallet-actions" style="margin-top:auto;">
+            <button onclick="clearHistory()" class="btn-danger">Clear All History</button>
+            <button onclick="toggleWallet()" class="btn-hide">Hide Wallet</button>
+        </div>
+    </div>
+</div>
+
+<button class="fab" onclick="toggleWallet()">💰</button>
+
+<script src="tracker.js"></script>
+<script src="exporter.js"></script>
+<script src="dropper.js"></script>
+</body>
+</html>
