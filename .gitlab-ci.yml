@@ -1,0 +1,39 @@
+# 1. Use Node 24 for the entire pipeline (Global setting)
+image: node:24
+
+# 2. Define the stages for your concurrent chores
+stages:
+  - build
+  - deploy
+
+# 3. Build your REWP project
+# This job handles the "Development" and "Maintenance" chores
+build_site:
+  stage: build
+  script:
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - public/  # This saves the built files for the deploy stage
+
+# 4. Deploy to GitLab Pages (Equivalent to GitHub Pages)
+# Note: In GitLab, the job MUST be named "pages" to go live
+pages:
+  stage: deploy
+  dependencies:
+    - build_site  # This pulls the public/ folder from the previous job
+  script:
+    - echo "Finalizing ac.io sub-web deployment..."
+    # If your build script didn't create a 'public' folder, 
+    # we use your copy logic as a safety backup:
+    - if [ ! -d "public" ]; then mkdir public && cp -rv * public; fi
+  artifacts:
+    paths:
+      - public/
+  only:
+    - main
+# Inside your .gitlab-ci.yml
+script:
+  - echo "The key is $MINING_API_KEY" 
+  # The public log will show: "The key is [MASKED]"

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>REWP Logbook</title>
+    <title>REWP Logbook(Recycling Empowered Waste Platform)</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json"    type="B">
 <script>
@@ -53,6 +53,20 @@
             <input type="number" id="distance" value="200" placeholder="km">
             <input type="number" id="consuption" value="8.0" placeholder="L/100km">
             <input type="number" id="fuelPrice" value="20.12" placeholder="R/L">
+        <!-- Action Buttons -->
+<div class="button-group">
+    <button id="allowanceBtn" onclick="claimFuelAllowance()" class="btn-allowance" disabled title="Requires R500 Gross">
+        Claim Fuel Allowance (Min R500)
+    </button>
+</div>
+
+<!-- Simple Preview Modal -->
+<div id="previewModal" style="display:none; position:fixed; top:10%; left:10%; width:80%; height:80%; background:white; border:2px solid #333; z-index:1000; padding:20px; overflow-y:auto; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
+    <h3>REWP Report Preview</h3>
+    <div id="previewContent" style="font-family: monospace; white-space: pre; border: 1px solid #ccc; padding: 10px; margin-bottom: 15px;"></div>
+    <button onclick="document.getElementById('previewModal').style.display='none'">Close Preview</button>
+</div>
+
         </div>
     </section>
 
@@ -85,8 +99,31 @@
     <div class="stat-row" style="color:var(--danger)"><span>Fuel Cost</span> <span id="travel">R0.00</span></div>
     <div class="net-profit">NET: <span id="netProfit">R0.00</span></div>
     
-    <!-- This is the Export CSV button -->
-    <button onclick="exportToCSV()" class="btn-alt" style="margin-top:15px; width:100%;">Export CSV</button>
+        <<div style="display: flex; gap: 10px; margin-top: 15px; width: 100%;">
+    <button onclick="previewReport()" class="btn-view" style="width: 30%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px;">View</button>
+    <button onclick="exportToCSV()" class="btn-export" style="width: 70%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px;">Export CSV</button>
+</div>
+<div id="previewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content: center; align-items: center;">
+    <div style="background:white; width: 90%; max-width: 400px; padding: 20px; border-radius: 10px; color: #333;">
+        <h3 style="margin-top:0; border-bottom: 2px solid #eee; padding-bottom: 10px;">REWP Log Preview</h3>
+        
+        <!-- The Data Box -->
+        <div id="previewContent" style="font-family: monospace; background: #f8f9fa; padding: 15px; border-radius: 5px; max-height: 300px; overflow-y: auto; white-space: pre-wrap; font-size: 14px; border: 1px solid #ddd;">
+            <!-- DATA LOADS HERE -->
+        </div>
+
+        <label style="display:block; margin: 15px 0; color: #d9534f; font-size: 13px; font-weight: bold;">
+            <input type="checkbox" onchange="handleSignature(this)"> 
+            Confirm weights & 15% REWP deduction.
+        </label>
+
+        <div style="display: flex; gap: 10px;">
+            <button id="exportBtn" onclick="exportToCSV()" disabled style="flex: 2; padding: 10px; background: #28a745; color: white; border: none; opacity: 0.5;">Download</button>
+            <button onclick="document.getElementById('previewModal').style.display='none'" style="flex: 1; padding: 10px; background: #ccc; border: none;">Close</button>
+        </div>
+    </div>
+</div>
+
 </section>
 
 <!-- ADD THE FEED HERE (Below Export CSV, Inside Container) -->

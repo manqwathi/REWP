@@ -79,3 +79,45 @@ function updateFinancials() {
     document.getElementById('rewp-deduction').innerText = `R ${rewpShare.toFixed(2)}`;
     document.getElementById('netProfit').innerText = `R ${finalNet.toFixed(2)}`;
 }
+function previewReport() {
+    // 1. Get values safely
+    const grossVal = document.getElementById('gross').innerText;
+    const travelVal = document.getElementById('travel').innerText;
+    const netVal = document.getElementById('netProfit').innerText;
+    const rewpVal = document.getElementById('rewp-deduction').innerText;
+    
+    // Create a unique Transaction ID for the 15% contribution
+    const txID = "REWP-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+    // 2. Build the text string
+    let previewText = `ID: ${txID}\nDATE: ${new Date().toLocaleDateString()}\n`;
+    previewText += `--------------------------\n`;
+    
+    // Loop through inventory (ensure 'inventory' exists in your global scope)
+    if (window.inventory && inventory.length > 0) {
+        inventory.forEach(i => {
+            previewText += `${i.name.padEnd(10)}: ${i.weight}kg @ R${i.rate}\n`;
+        });
+    } else {
+        previewText += "No items in logbook.\n";
+    }
+
+    previewText += `--------------------------\n`;
+    previewText += `GROSS:     ${grossVal}\n`;
+    previewText += `TRAVEL:    ${travelVal}\n`;
+    previewText += `REWP (15%): ${rewpVal}\n`;
+    previewText += `NET PAYOUT: ${netVal}\n`;
+
+    // 3. Inject and Display
+    const contentDiv = document.getElementById('previewContent');
+    const modal = document.getElementById('previewModal');
+    
+    contentDiv.innerText = previewText;
+    modal.style.display = 'flex'; // Use flex to trigger the centering
+}
+
+function handleSignature(checkbox) {
+    const exportBtn = document.getElementById('exportBtn');
+    exportBtn.disabled = !checkbox.checked;
+    exportBtn.style.opacity = checkbox.checked ? "1" : "0.5";
+}

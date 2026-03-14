@@ -261,41 +261,102 @@ document.getElementById('weight').addEventListener('keydown', (e) => {
         e.preventDefault();
         addItem();
     }
-});
-function saveBudget() {
-    const budgetData = {
-        fixed: document.getElementById('asset-fixed').value,
-        short: document.getElementById('asset-short').value,
-        edu: document.getElementById('all-edu').value,
-        occ: document.getElementById('all-occ').value
-    };
-    localStorage.setItem('REWP_BudgetSheet', JSON.stringify(budgetData));
-    showSuccessToast("Budget Sheet Synchronized");
-    closeAllowance();
-}
-function checkSafetyStatus() {
-    const safetyBudget = parseFloat(document.getElementById('exp-safety')?.value) || 0;
-    const allChecked = document.getElementById('ppe-boots').checked && 
-                       document.getElementById('ppe-vest').checked &&
-                       document.getElementById('ppe-gloves').checked;
-    
-    const allowanceBtn = document.querySelector('.btn-main[onclick="openAllowance()"]');
+});// 1. STATE & CONFIG
+const MIN_GROSS_FOR_ALLOWANCE = 500.00;
+let fuelCoveredByAllowance = false;
+let isSigned = false; // For Digital Signature
 
-    if (safetyBudget <= 0 || !allChecked) {
-        // High-priority warning
-        allowanceBtn.style.background = "#ff4444";
-        allowanceBtn.innerHTML = "⚠️ Safety Check Required";
-        allowanceBtn.classList.add('pulse-red');
-    } else {
-        // All clear
-        allowanceBtn.style.background = "#007bff";
-        allowanceBtn.innerHTML = "💰 Manage Allowance";
-        allowanceBtn.classList.remove('pulse-red');
+// 2. FINANCIAL CORE
+function updateFinancials() {
+    let totalGross = 0;
+    // Calculate total from inventory
+    if (typeof inventory !== 'undefined') {
+        inventory.forEach(item => totalGross += (item.weight * item.rate));
+    }
+
+    // Handle Allowance Button State (R500 Gatekeeper)
+    const allowanceBtn = document.getElementById('allowanceBtn');
+    if (allowanceBtn && !fuelCoveredByAllowance) {
+        if (totalGross >= MIN_GROSS_FOR_ALLOWANCE) {
+            allowanceBtn.disabled = false;
+            allowanceBtn.classList.add('active'); // Style this green in CSS
+            allowanceBtn.innerText = "Claim Fuel Allowance";
+        } else {
+            allowanceBtn.disabled = true;
+            allowanceBtn.innerText = `Need R${(MIN_GROSS_FOR_ALLOWANCE - totalGross).toFixed(2)} more`;
+        }
+    }
+
+    // Logic for Travel/Net
+    // Uses dataset to remember original fuel cost even after "clearing" it
+    const travelElem = document.getElementById('travel');
+    const rawTravel = parseFloat(travelElem.dataset.originalValue) || 150.00; 
+    const currentTravel = fuelCoveredByAllowance ? 0 : rawTravel;
+    
+    const rewpShare = totalGross * 0.15;
+    const finalNet = totalGross - currentTravel - rewpShare;
+
+    // Update UI Elements
+    document.getElementById('gross').innerText = `R ${totalGross.toFixed(2)}`;
+    document.getElementById('travel').innerText = `- R ${currentTravel.toFixed(2)}`;
+    document.getElementById('rewp-deduction').innerText = `R ${rewpShare.toFixed(2)}`;
+    document.getElementById('netProfit').innerText = `R ${finalNet.toFixed(2)}`;
+}
+
+// 3. ALLOWANCE & SAFETY
+function claimFuelAllowance() {
+    const gross = parseFloat(document.getElementById('gross').innerText.replace(/[^\d.-]/g, '')) || 0;
+    
+    if (gross >= MIN_GROSS_FOR_ALLOWANCE) {
+        fuelCoveredByAllowance = true;
+        updateFinancials();
+        showSuccessToast("Fuel expense moved to REWP Allowance!");
+        document.getElementById('allowanceBtn').innerText = "Allowance Applied";
+        document.getElementById('allowanceBtn').disabled = true;
     }
 }
 
-// Ensure this runs whenever you calculate or open the modal
-function openAllowance() {
-    document.getElementById('allowanceModal').style.display = 'flex';
-    checkSafetyStatus(); 
+function checkSafetyStatus() {
+    const safetyBudget = parseFloat(document.getElementById('exp-safety')?.value) || 0;
+    const allChecked = document.getElementById('ppe-boots')?.checked && 
+                       document.getElementById('ppe-vest')?.checked &&
+                       document.getElementById('ppe-gloves')?.checked;
+    
+    const mainBtn = document.querySelector('.btn-main'); // Button that opens the hub
+
+    if (safetyBudget <= 0 || !allChecked) {
+        mainBtn.style.background = "#ff4444";
+        mainBtn.innerHTML = "⚠️ Safety Check Required";
+    } else {
+        mainBtn.style.background = "#007bff";
+        mainBtn.innerHTML = "💰 Manage Allowance";
+    }
 }
+
+// 4. PREVIEW & SIGNATURE
+function previewReport() {
+    const gross = parseFloat(document.getElementById('gross').innerText.replace(/[^\d.-]/g, '')) || 0;
+    const travel = parseFloat(document.getElementById('travel').innerText.replace(/[^\d.-]/g, '')) || 0;
+    const rewp = (gross * 0.15).toFixed(2);
+    const net = (gross - travel - rewp).toFixed(2);
+
+    let previewHtml = `REWP OFFICIAL LOGBOOK\n--------------------------\n`;
+    inventory.forEach(i => {
+        previewHtml += `${i.name.padEnd(12)} | ${i.weight}kg | R${(i.weight*i.rate).toFixed(2)}\n`;
+    });
+    previewHtml += `\nGROSS: R${gross.toFixed(2)}\nFUEL:  R${travel.toFixed(2)}\nREWP (15%): R${rewp}\nNET:   R${net}\n`;
+    
+    // Insert text and show modal
+    document.getElementById('previewContent').innerText = previewHtml;
+    document.getElementById('previewModal').style.display = 'block';
+    
+    // Reset signature on every new preview open
+    isSigned = false;
+    document.getElementById('exportBtn').disabled = true;
+}
+
+function handleSignature(checkbox) {
+    isSigned = checkbox.checked;
+    document.getElementById('exportBtn').disabled = !isSigned;
+}
+
